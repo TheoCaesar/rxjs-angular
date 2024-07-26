@@ -1,5 +1,6 @@
 import { Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
-import { interval, map } from 'rxjs';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { count, interval, map } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -9,25 +10,14 @@ import { interval, map } from 'rxjs';
 export class AppComponent implements OnInit{
   private destroy = inject(DestroyRef)
   count = signal<number>(0);
+  count$ = toObservable(this.count) //notice arg isnt callable
   constructor(){
-    effect(()=>{
-      console.log(`You clicked button ${this.count()} times...`)
-    })
+    // effect(()=>{console.log(`You clicked button ${this.count()} times...`)})
   }
   ngOnInit() {
-    const interval$ = interval(1000).pipe(
-      map((val) => val*2)
-    ).subscribe({
-      next:(value)=>console.log(value),
+    const subscr = this.count$.subscribe((data)=>{
+      console.log(`You clicked button ${data} times...`)
     })
-
-    //unsubscribe
-    setTimeout(() => {
-      interval$.unsubscribe()
-    }, 15000);
- 
-    // unsubscribe onDestroy of component
-    this.destroy.onDestroy(interval$.unsubscribe)
   }
 
   onClick(){
